@@ -12,7 +12,7 @@ datasource db {
 
 type Password {
   password String
-  salt String
+  salt     String
 }
 
 model Company {
@@ -48,7 +48,7 @@ model Card {
   maxPoints     Int
   currentPoints Int      @default(0)
   xCompleted    Int      @default(0)
-  image         String?
+  image         String   @default("path/to/placeholder/image")
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }
@@ -59,8 +59,8 @@ model Ad {
   companyId String   @db.ObjectId
   name      String
   price     Float
-  image     String
-  //discount  Float
+  image     String   @default("path/to/placeholder/image")
+  priority  Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
