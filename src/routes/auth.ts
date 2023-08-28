@@ -2,6 +2,7 @@ import { FastifyInstance } from "fastify"
 import { hashPassword, verifyPassword } from "../lib/hashPassword"
 import { z } from 'zod'
 import { PrismaClient } from "@prisma/client"
+import { Roles } from "../lib/enums"
 
 const prisma = new PrismaClient()
 
@@ -12,12 +13,12 @@ export async function authRoutes(app: FastifyInstance) {
             name: z.string(),
             email: z.string().email(),
             password: z.string(),
-            confirmPassword: z.string({ required_error: 'Field is required' }),
+            confirmPassword: z.string(),
             isEmployee: z.boolean().default(false),
             companyId: z.string().optional()
         }).refine((data) => data.password === data.confirmPassword, {
             message: 'Passwords don\'t match',
-            path: ['confrmPassword']
+            path: ['password', 'confirmPassword']
         })
         const { name, email, password, isEmployee, companyId } = bodySchema.parse(req.body)
         const { hash, salt } = hashPassword(password)
@@ -53,11 +54,11 @@ export async function authRoutes(app: FastifyInstance) {
             name: z.string(),
             email: z.string().email(),
             password: z.string(),
-            confirmPassword: z.string({ required_error: 'Field is required' }),
-            logo: z.string()
+            confirmPassword: z.string(),
+            logo: z.string().optional()
         }).refine((data) => data.password === data.confirmPassword, {
             message: 'Passwords don\'t match',
-            path: ['confrmPassword']
+            path: ['password', 'confirmPassword']
         })
         const { name, email, password, logo } = bodySchema.parse(req.body)
         const { hash, salt } = hashPassword(password)
@@ -89,7 +90,7 @@ export async function authRoutes(app: FastifyInstance) {
         const company = await prisma.company.findUnique({ where: { email } })
 
         if (user && verifyPassword(password, user.password.salt, user.password.hash)) {
-            const {password, ...rest } = user
+            const { password, ...rest } = user
             const accessTokenPayload = { ...rest }
             const accessToken = app.jwt.sign(accessTokenPayload, { expiresIn: '7d' })
 
@@ -97,13 +98,12 @@ export async function authRoutes(app: FastifyInstance) {
                 user: {
                     name: user.name,
                     email: user.email,
-                    employee: user.isEmployee,
-                    type: 'user'
+                    role: user.isEmployee ? Roles.Employee : Roles.Customer
                 },
                 accessToken
             })
         } else if (company && verifyPassword(password, company.password.salt, company.password.hash)) {
-            const {password, ...rest } = company
+            const { password, ...rest } = company
             const accessTokenPayload = { ...rest }
             const accessToken = app.jwt.sign(accessTokenPayload, { expiresIn: '7d' })
 
@@ -111,7 +111,7 @@ export async function authRoutes(app: FastifyInstance) {
                 company: {
                     name: company.name,
                     email: company.email,
-                    type: 'company'
+                    role: Roles.Owner
                 },
                 accessToken
             })
