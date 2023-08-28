@@ -79,8 +79,8 @@ export async function authRoutes(app: FastifyInstance) {
         }
     })
 
-    //login
-    app.post('/login', async (req, res) => {
+    //signin
+    app.post('/signin', async (req, res) => {
         const { email, password } = z.object({
             email: z.string().email(),
             password: z.string()
