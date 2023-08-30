@@ -91,20 +91,21 @@ export async function authRoutes(app: FastifyInstance) {
 
         if (user && verifyPassword(password, user.password.salt, user.password.hash)) {
             const { password, ...rest } = user
-            const accessTokenPayload = { ...rest }
+            const userRole = user.isEmployee ? Roles.Employee : Roles.Customer;
+            const accessTokenPayload = { ...rest, role: userRole }
             const accessToken = app.jwt.sign(accessTokenPayload, { expiresIn: '7d' })
 
             return res.status(200).send({
                 user: {
                     name: user.name,
                     email: user.email,
-                    role: user.isEmployee ? Roles.Employee : Roles.Customer
+                    role: userRole
                 },
                 accessToken
             })
         } else if (company && verifyPassword(password, company.password.salt, company.password.hash)) {
             const { password, ...rest } = company
-            const accessTokenPayload = { ...rest }
+            const accessTokenPayload = { ...rest, role: Roles.Owner }
             const accessToken = app.jwt.sign(accessTokenPayload, { expiresIn: '7d' })
 
             return res.status(200).send({
