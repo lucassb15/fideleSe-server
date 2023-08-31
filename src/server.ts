@@ -4,6 +4,7 @@ import jwt from '@fastify/jwt'
 import 'dotenv/config'
 
 import { authRoutes } from './routes/auth'
+import { adRoutes } from './routes/ads'
 
 const server = fastify()
 
@@ -16,6 +17,7 @@ server.register(jwt, {
 })
 
 server.register(authRoutes)
+server.register(adRoutes)
 
 const port = Number(process.env.PORT)
 server
