@@ -3,6 +3,8 @@ import { hashPassword, verifyPassword } from "../lib/hashPassword"
 import { z } from 'zod'
 import { PrismaClient } from "@prisma/client"
 import { Roles } from "../lib/enums"
+import { existsSync, mkdirSync, writeFileSync } from "fs"
+import { join } from "path"
 
 const prisma = new PrismaClient()
 
@@ -50,18 +52,28 @@ export async function authRoutes(app: FastifyInstance) {
 
     //register company
     app.post('/register/company', async (req, res) => {
+        var filePath: string | undefined = undefined
         const bodySchema = z.object({
             name: z.string(),
             email: z.string().email(),
             password: z.string(),
             confirmPassword: z.string(),
-            logo: z.string().optional()
+            logo: z.any().optional().refine((file) => !!file && file.mimetype.startsWith("image"), {
+                message: "Only images are allowed to be sent.",
+            })
         }).refine((data) => data.password === data.confirmPassword, {
             message: 'Passwords don\'t match',
             path: ['password', 'confirmPassword']
         })
         const { name, email, password, logo } = bodySchema.parse(req.body)
         const { hash, salt } = hashPassword(password)
+        if (logo) {
+             filePath = join(__dirname, '../../uploads/logos', Date.now().toString() + logo.filename)
+            if (!existsSync(join(__dirname, '../../uploads/logos'))) {
+                mkdirSync(join(__dirname, '../../uploads/logos'), { recursive: true })
+            }
+            logo.data.then((buffer: string) => { writeFileSync(filePath!, buffer) })
+        }
 
         try {
             let company = await prisma.user.findUnique({ where: { email } }) || await prisma.company.findUnique({ where: { email } })
@@ -72,6 +84,7 @@ export async function authRoutes(app: FastifyInstance) {
                 company = await prisma.company.create({ data: {
                     name,
                     email,
+                    logo: filePath,
                     password: { hash, salt }
                 } })
             }

@@ -1,24 +1,36 @@
 import { FastifyInstance } from "fastify"
-import { z } from 'zod'
+import { string, z } from 'zod'
 import { PrismaClient } from "@prisma/client"
+import { existsSync, mkdirSync, writeFileSync } from "fs"
+import { join } from "path"
 
 const prisma = new PrismaClient()
 
 export async function adRoutes(app: FastifyInstance) {
     app.post('/create/ad', async (req, res) => {
-        const { name, price, image, companyId } = z.object({
+        var filePath: string | undefined = undefined
+        const { name, price, companyId, image } = z.object({
             name: z.string(),
-            price: z.number().positive(),
-            image: z.string(),
-            companyId: z.string()
+            price: z.coerce.number().positive(),
+            companyId: z.string(),
+            image: z.any().optional().refine((file) => !!file && file.mimetype.startsWith("image"), {
+                message: "Only images are allowed to be sent.",
+            })
         }).parse(req.body)
+        if (image) {
+            filePath = join(__dirname, '../../uploads', companyId, Date.now().toString() + image.filename)
+            if (!existsSync(join(__dirname, '../../uploads', companyId))) {
+                mkdirSync(join(__dirname, '../../uploads', companyId), { recursive: true })
+            }
+            image.data.then((buffer: string) => { writeFileSync(filePath!, buffer) })
+        }
 
         try {
             const ad = await prisma.ad.create({
                 data: {
                     name,
                     price,
-                    image,
+                    image: filePath,
                     company: { connect: { id: companyId } }
                 }
             })
@@ -33,17 +45,16 @@ export async function adRoutes(app: FastifyInstance) {
         }).parse(req.params)
 
         if (companyId) {
-            const ads = await prisma.ad.findMany({
+            var ads = await prisma.ad.findMany({
                 where: { companyId }
             })
-            return ads
         } else {
-            const ads = await prisma.ad.findMany({
+            var ads = await prisma.ad.findMany({
                 orderBy: {
                     createdAt: 'desc'
                 }
             })
-            return ads
         }
+        return ads
     })
 }
