@@ -1,5 +1,5 @@
 import { FastifyInstance } from "fastify"
-import { string, z } from 'zod'
+import { z } from 'zod'
 import { PrismaClient } from "@prisma/client"
 import { existsSync, mkdirSync, writeFileSync } from "fs"
 import { join } from "path"
@@ -56,5 +56,59 @@ export async function adRoutes(app: FastifyInstance) {
             })
         }
         return ads
+    })
+
+    app.put('edit/ad', async (req, res) => {
+        var filePath: string | undefined = undefined
+        const { adId, companyId, name, price, image } = z.object({
+            adId: z.string(),
+            companyId: z.string(),
+            name: z.string(),
+            price: z.coerce.number().positive(),
+            image: z.any().optional().refine((file) => !!file && file.mimetype.startsWith("image"), {
+                message: "Only images are allowed to be sent.",
+            })
+        }).parse(req.body)
+        if (image) {
+            filePath = join(__dirname, '../../uploads', companyId, Date.now().toString() + image.filename)
+            if (!existsSync(join(__dirname, '../../uploads', companyId))) {
+                mkdirSync(join(__dirname, '../../uploads', companyId), { recursive: true })
+            }
+            image.data.then((buffer: string) => { writeFileSync(filePath!, buffer) })
+        }
+
+        try {
+            if (image) {
+                await prisma.ad.update({
+                    where: { id: adId },
+                    data: {
+                        name,
+                        price,
+                        image: filePath
+                    }
+                })
+            } else {
+                await prisma.ad.update({
+                    where: { id: adId },
+                    data: {
+                        name,
+                        price
+                    }
+                })
+            }
+        } catch (err) {
+            console.log(err)
+        }
+
+    })
+
+    app.delete('/delete/:adId', async (req, res) => {
+        const { adId } = z.object({
+            adId: z.string()
+        }).parse(req.params)
+
+        await prisma.ad.delete({
+            where: { id: adId }
+        })
     })
 }

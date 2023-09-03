@@ -24,7 +24,7 @@ server.register(multipart, {
       filename: part.filename,
       mimetype: part.mimetype,
       data: part.toBuffer()
-  }
+    }
   }
 })
 

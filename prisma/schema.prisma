@@ -22,7 +22,7 @@ model Company {
   address    String?
   password   Password
   logo       String   @default("path/to/placeholder/image")
-  cards      Card[]
+  cards      companyCard[]
   ads        Ad[]
   stats      Stat[]
   employeeId String?  @db.ObjectId
@@ -35,7 +35,7 @@ model User {
   email      String   @unique
   name       String
   password   Password
-  cards      Card[]
+  cards      userCard[]
   stats      Stat[]
   isEmployee Boolean  @default(false)
   companyId  String?  @db.ObjectId
@@ -43,18 +43,28 @@ model User {
   updatedAt  DateTime @updatedAt
 }
 
-model Card {
-  id            String   @id @default(auto()) @map("_id") @db.ObjectId
-  customer      User     @relation(fields: [customerId], references: [id])
-  customerId    String   @db.ObjectId
-  company       Company  @relation(fields: [companyId], references: [id])
-  companyId     String   @db.ObjectId
+model companyCard {
+  id            String     @id @default(auto()) @map("_id") @db.ObjectId
+  company       Company    @relation(fields: [companyId], references: [id])
+  companyId     String     @db.ObjectId
+  userCards     userCard[]
+  name          String
   maxPoints     Int
-  currentPoints Int      @default(0)
-  xCompleted    Int      @default(0)
-  image         String   @default("path/to/placeholder/image")
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  image         String     @default("path/to/placeholder/image")
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+}
+
+model userCard {
+  id            String      @id @default(auto()) @map("_id") @db.ObjectId
+  customer      User        @relation(fields: [customerId], references: [id])
+  customerId    String      @db.ObjectId
+  companyCard   companyCard @relation(fields: [companyCardId], references: [id])
+  companyCardId String      @db.ObjectId
+  currentPoints Int         @default(0)
+  xCompleted    Int         @default(0)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
 }
 
 model Ad {
