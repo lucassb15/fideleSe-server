@@ -1,9 +1,7 @@
 import { FastifyInstance } from "fastify"
 import { z } from 'zod'
 import { PrismaClient } from "@prisma/client"
-import { existsSync, mkdirSync, writeFileSync } from "fs"
-import { join } from "path"
-import { connect } from "http2"
+import { saveImage } from "../lib/imageHandling"
 
 const prisma = new PrismaClient()
 
@@ -21,11 +19,7 @@ export async function cardRoutes(app: FastifyInstance) {
         }).parse(req.body)
 
         if (image) {
-            filePath = join(__dirname, '../../uploads', companyId, Date.now().toString() + image.filename)
-            if (!existsSync(join(__dirname, '../../uploads', companyId))) {
-                mkdirSync(join(__dirname, '../../uploads', companyId), { recursive: true })
-            }
-            image.data.then((buffer: string) => { writeFileSync(filePath!, buffer) })
+            filePath = await saveImage(image.filename, image.data, companyId)
         }
 
         try {
@@ -55,11 +49,7 @@ export async function cardRoutes(app: FastifyInstance) {
         }).parse(req.body)
 
         if (image) {
-            filePath = join(__dirname, '../../uploads', companyId, Date.now().toString() + image.filename)
-            if (!existsSync(join(__dirname, '../../uploads', companyId))) {
-                mkdirSync(join(__dirname, '../../uploads', companyId), { recursive: true })
-            }
-            image.data.then((buffer: string) => { writeFileSync(filePath!, buffer) })
+            filePath = await saveImage(image.filename, image.data, companyId)
         }
 
         try {

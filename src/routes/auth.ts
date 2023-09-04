@@ -3,8 +3,7 @@ import { hashPassword, verifyPassword } from "../lib/hashPassword"
 import { z } from 'zod'
 import { PrismaClient } from "@prisma/client"
 import { Roles } from "../lib/enums"
-import { existsSync, mkdirSync, writeFileSync } from "fs"
-import { join } from "path"
+import { saveImage } from "../lib/imageHandling"
 
 const prisma = new PrismaClient()
 
@@ -52,7 +51,7 @@ export async function authRoutes(app: FastifyInstance) {
 
     //register company
     app.post('/register/company', async (req, res) => {
-        var filePath: string | undefined = undefined
+        var filePath: string | undefined
         const bodySchema = z.object({
             name: z.string(),
             email: z.string().email(),
@@ -68,11 +67,7 @@ export async function authRoutes(app: FastifyInstance) {
         const { name, email, password, logo } = bodySchema.parse(req.body)
         const { hash, salt } = hashPassword(password)
         if (logo) {
-             filePath = join(__dirname, '../../uploads/logos', Date.now().toString() + logo.filename)
-            if (!existsSync(join(__dirname, '../../uploads/logos'))) {
-                mkdirSync(join(__dirname, '../../uploads/logos'), { recursive: true })
-            }
-            logo.data.then((buffer: string) => { writeFileSync(filePath!, buffer) })
+            filePath = await saveImage(logo.filename, logo.data)
         }
 
         try {
