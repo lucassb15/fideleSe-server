@@ -3,12 +3,19 @@ import { z } from 'zod'
 import { PrismaClient } from "@prisma/client"
 import { existsSync, mkdirSync, writeFileSync } from "fs"
 import { join } from "path"
+import fastifyStatic from "@fastify/static"
 
 const prisma = new PrismaClient()
 
 export async function adRoutes(app: FastifyInstance) {
+    app.register(fastifyStatic, {
+        root: join(__dirname, '../../uploads'),
+        prefix: '/uploads/',
+    });
+
     app.post('/create/ad', async (req, res) => {
         var filePath: string | undefined = undefined
+        var relativePath: string | undefined
         const { name, price, companyId, image } = z.object({
             name: z.string(),
             price: z.coerce.number().positive(),
@@ -18,11 +25,17 @@ export async function adRoutes(app: FastifyInstance) {
             })
         }).parse(req.body)
         if (image) {
-            filePath = join(__dirname, '../../uploads', companyId, Date.now().toString() + image.filename)
+            relativePath = join('uploads', companyId, Date.now().toString() + image.filename)
+            filePath = join(__dirname, '../../', relativePath)
             if (!existsSync(join(__dirname, '../../uploads', companyId))) {
                 mkdirSync(join(__dirname, '../../uploads', companyId), { recursive: true })
             }
             image.data.then((buffer: string) => { writeFileSync(filePath!, buffer) })
+        }
+
+        let dbImagePath: string | undefined;
+        if (relativePath) {
+            dbImagePath = relativePath.replace(/\\/g, '/');
         }
 
         try {
@@ -30,7 +43,7 @@ export async function adRoutes(app: FastifyInstance) {
                 data: {
                     name,
                     price,
-                    image: filePath,
+                    image: dbImagePath,
                     company: { connect: { id: companyId } }
                 }
             })
@@ -58,7 +71,7 @@ export async function adRoutes(app: FastifyInstance) {
         return ads
     })
 
-    app.put('edit/ad', async (req, res) => {
+    app.put('/edit/ad', async (req, res) => {
         var filePath: string | undefined = undefined
         const { adId, companyId, name, price, image } = z.object({
             adId: z.string(),
