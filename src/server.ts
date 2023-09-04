@@ -2,7 +2,9 @@ import fastify from 'fastify'
 import jwt from '@fastify/jwt'
 import cors from '@fastify/cors'
 import multipart from '@fastify/multipart'
+import fastifyStatic from "@fastify/static"
 import 'dotenv/config'
+import { join } from 'path'
 
 import { authRoutes } from './routes/auth'
 import { adRoutes } from './routes/ads'
@@ -27,6 +29,11 @@ server.register(multipart, {
     }
   }
 })
+
+server.register(fastifyStatic, {
+  root: join(__dirname, '../../uploads'),
+  prefix: '/uploads/',
+});
 
 server.register(authRoutes)
 server.register(adRoutes)
