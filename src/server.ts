@@ -31,7 +31,7 @@ server.register(multipart, {
 })
 
 server.register(fastifyStatic, {
-  root: join(__dirname, '../../uploads'),
+  root: join(__dirname, '../uploads'),
   prefix: '/uploads/',
 });
 
