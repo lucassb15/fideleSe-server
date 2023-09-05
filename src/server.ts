@@ -8,6 +8,7 @@ import { join } from 'path'
 
 import { authRoutes } from './routes/auth'
 import { adRoutes } from './routes/ads'
+import { cardRoutes } from './routes/cards.ts'
 
 const server = fastify()
 
@@ -37,6 +38,7 @@ server.register(fastifyStatic, {
 
 server.register(authRoutes)
 server.register(adRoutes)
+server.register(cardRoutes)
 
 const port = Number(process.env.PORT)
 server
