@@ -71,8 +71,6 @@ model Ad {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   company   Company  @relation(fields: [companyId], references: [id])
   companyId String   @db.ObjectId
-  name      String
-  price     Float
   image     String   @default("path/to/placeholder/image")
   priority  Boolean  @default(false)
   createdAt DateTime @default(now())

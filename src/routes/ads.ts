@@ -8,23 +8,17 @@ const prisma = new PrismaClient()
 export async function adRoutes(app: FastifyInstance) {
     app.post('/create/ad', async (req, res) => {
         var filePath: string | undefined
-        const { name, price, companyId, image } = z.object({
-            name: z.string(),
-            price: z.coerce.number().positive(),
+        const { companyId, image } = z.object({
             companyId: z.string(),
-            image: z.any().optional().refine((file) => !!file && file.mimetype.startsWith("image"), {
+            image: z.any().refine((file) => !!file && file.mimetype.startsWith("image"), {
                 message: "Only images are allowed to be sent.",
             })
         }).parse(req.body)
-        if (image) {
-            filePath = await saveImage(image.filename, image.data, companyId)
-        }
+        filePath = await saveImage(image.filename, image.data, companyId)
 
         try {
             const ad = await prisma.ad.create({
                 data: {
-                    name,
-                    price,
                     image: filePath,
                     company: { connect: { id: companyId } }
                 }
@@ -55,38 +49,22 @@ export async function adRoutes(app: FastifyInstance) {
 
     app.put('/edit/ad', async (req, res) => {
         var filePath: string | undefined = undefined
-        const { adId, companyId, name, price, image } = z.object({
+        const { adId, companyId, image } = z.object({
             adId: z.string(),
             companyId: z.string(),
-            name: z.string(),
-            price: z.coerce.number().positive(),
-            image: z.any().optional().refine((file) => !!file && file.mimetype.startsWith("image"), {
+            image: z.any().refine((file) => !!file && file.mimetype.startsWith("image"), {
                 message: "Only images are allowed to be sent.",
             })
         }).parse(req.body)
-        if (image) {
-            filePath = await saveImage(image.filename, image.data, companyId)
-        }
+        filePath = await saveImage(image.filename, image.data, companyId)
 
         try {
-            if (image) {
-                await prisma.ad.update({
-                    where: { id: adId },
-                    data: {
-                        name,
-                        price,
-                        image: filePath
-                    }
-                })
-            } else {
-                await prisma.ad.update({
-                    where: { id: adId },
-                    data: {
-                        name,
-                        price
-                    }
-                })
-            }
+            await prisma.ad.update({
+                where: { id: adId },
+                data: {
+                    image: filePath
+                }
+            })
         } catch (err) {
             console.log(err)
         }
