@@ -93,7 +93,7 @@ export async function adRoutes(app: FastifyInstance) {
 
     })
 
-    app.delete('/delete/:adId', async (req, res) => {
+    app.delete('/delete/ad/:adId', async (req, res) => {
         const { adId } = z.object({
             adId: z.string()
         }).parse(req.params)

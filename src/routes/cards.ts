@@ -23,7 +23,7 @@ export async function cardRoutes(app: FastifyInstance) {
         }
 
         try {
-             await prisma.companyCard.create({
+            await prisma.companyCard.create({
                 data: {
                     name,
                     maxPoints,
@@ -96,7 +96,7 @@ export async function cardRoutes(app: FastifyInstance) {
         }
     })
 
-    app.delete('/delete/:cardId', async (req, res) => {
+    app.delete('/delete/card/:cardId', async (req, res) => {
         const { cardId } = z.object({
             cardId: z.string()
         }).parse(req.params)

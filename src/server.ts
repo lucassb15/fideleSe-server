@@ -8,7 +8,7 @@ import { join } from 'path'
 
 import { authRoutes } from './routes/auth'
 import { adRoutes } from './routes/ads'
-import { cardRoutes } from './routes/cards.ts'
+import { cardRoutes } from './routes/cards' 
 
 const server = fastify()
 
