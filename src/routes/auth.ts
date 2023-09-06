@@ -1,7 +1,7 @@
 import { FastifyInstance } from "fastify"
 import { hashPassword, verifyPassword } from "../lib/hashPassword"
 import { z } from 'zod'
-import { PrismaClient } from "@prisma/client"
+import { PrismaClient, Password } from "@prisma/client"
 import { Roles } from "../lib/enums"
 import { saveImage } from "../lib/imageHandling"
 
@@ -22,7 +22,7 @@ export async function authRoutes(app: FastifyInstance) {
             path: ['password', 'confirmPassword']
         })
         const { name, email, password, isEmployee, companyId } = bodySchema.parse(req.body)
-        const { hash, salt } = hashPassword(password)
+        const hashedPassword: Password = hashPassword(password)
 
         try {
             let user = await prisma.user.findUnique({ where: { email } }) || await prisma.company.findUnique({ where: { email } })
@@ -33,7 +33,7 @@ export async function authRoutes(app: FastifyInstance) {
                 user = await prisma.user.create({ data: {
                     name,
                     email,
-                    password: { hash, salt },
+                    password: hashedPassword,
                     isEmployee,
                     companyId
                 } })
@@ -65,7 +65,7 @@ export async function authRoutes(app: FastifyInstance) {
             path: ['password', 'confirmPassword']
         })
         const { name, email, password, logo } = bodySchema.parse(req.body)
-        const { hash, salt } = hashPassword(password)
+        const hashedPassword: Password = hashPassword(password)
         if (logo) {
             filePath = await saveImage(logo.filename, logo.data)
         }
@@ -80,7 +80,7 @@ export async function authRoutes(app: FastifyInstance) {
                     name,
                     email,
                     logo: filePath,
-                    password: { hash, salt }
+                    password: hashedPassword
                 } })
             }
         } catch (err) {

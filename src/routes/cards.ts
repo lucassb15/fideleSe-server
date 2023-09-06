@@ -1,6 +1,6 @@
 import { FastifyInstance } from "fastify"
 import { z } from 'zod'
-import { PrismaClient } from "@prisma/client"
+import { PrismaClient, StatType } from "@prisma/client"
 import { saveImage } from "../lib/imageHandling"
 
 const prisma = new PrismaClient()
@@ -12,7 +12,7 @@ export async function cardRoutes(app: FastifyInstance) {
         const { companyId, name, maxPoints, image } = z.object({
             companyId: z.string(),
             name: z.string(),
-            maxPoints: z.number().positive(),
+            maxPoints: z.coerce.number().positive(),
             image: z.any().optional().refine((file) => !!file && file.mimetype.startsWith("image"), {
                 message: "Only images are allowed to be sent.",
             })
@@ -42,7 +42,7 @@ export async function cardRoutes(app: FastifyInstance) {
             cardId: z.string(),
             companyId: z.string(),
             name: z.string(),
-            maxPoints: z.number().positive(),
+            maxPoints: z.coerce.number().positive(),
             image: z.any().optional().refine((file) => !!file && file.mimetype.startsWith("image"), {
                 message: "Only images are allowed to be sent.",
             })
@@ -101,7 +101,7 @@ export async function cardRoutes(app: FastifyInstance) {
             cardId: z.string()
         }).parse(req.params)
 
-        await prisma.ad.delete({
+        await prisma.companyCard.delete({
             where: { id: cardId }
         })
     })
@@ -120,33 +120,48 @@ export async function cardRoutes(app: FastifyInstance) {
                     companyCard: { connect: { id: companyCardId } }
                 }
             })
+            await prisma.stat.create({
+                data: {
+                    companyCard: { connect: { id: companyCardId } }
+                }
+            })
         } catch (err) {
             console.log(err)
         }
     })
 
     app.put('/edit/loyalty', async (req, res) => {
-        const { cardId, companyCardId, currentPoints, xCompleted } = z.object({
+        const { cardId, companyCardId } = z.object({
             cardId: z.string(),
             companyCardId: z.string(),
-            currentPoints: z.number().positive(),
-            xCompleted: z.number().positive()
         }).parse(req.body)
         const companyCard = await prisma.companyCard.findUnique({ where: { id: companyCardId } })
+        const card = await prisma.userCard.findUnique({ where: { id: cardId } })
 
-        if (currentPoints == companyCard!.maxPoints) {
+        if (card!.currentPoints == companyCard!.maxPoints) {
             await prisma.userCard.update({
                 where: { id: cardId },
                 data: {
                     currentPoints: 0,
-                    xCompleted: xCompleted + 1
+                    xCompleted: card!.xCompleted + 1
+                }
+            })
+            await prisma.stat.create({
+                data: {
+                    companyCard: { connect: { id: companyCardId } },
+                    type: StatType.COMPLETION
                 }
             })
         } else {
             await prisma.userCard.update({
                 where: { id: cardId },
                 data: {
-                    currentPoints: currentPoints + 1
+                    currentPoints: card!.currentPoints + 1
+                }
+            })
+            await prisma.stat.create({
+                data: {
+                    companyCard: { connect: { id: companyCardId } }
                 }
             })
         }

@@ -15,6 +15,11 @@ type Password {
   salt String
 }
 
+enum StatType {
+  POINT
+  COMPLETION
+}
+
 model Company {
   id         String   @id @default(auto()) @map("_id") @db.ObjectId
   email      String   @unique
@@ -22,9 +27,8 @@ model Company {
   address    String?
   password   Password
   logo       String   @default("path/to/placeholder/image")
-  cards      companyCard[]
+  cards      CompanyCard[]
   ads        Ad[]
-  stats      Stat[]
   employeeId String?  @db.ObjectId
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
@@ -35,33 +39,33 @@ model User {
   email      String   @unique
   name       String
   password   Password
-  cards      userCard[]
-  stats      Stat[]
+  cards      UserCard[]
   isEmployee Boolean  @default(false)
   companyId  String?  @db.ObjectId
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 }
 
-model companyCard {
+model CompanyCard {
   id            String     @id @default(auto()) @map("_id") @db.ObjectId
   company       Company    @relation(fields: [companyId], references: [id])
   companyId     String     @db.ObjectId
-  userCards     userCard[]
+  userCards     UserCard[]
   name          String
   maxPoints     Int
   image         String     @default("path/to/placeholder/image")
+  stats         Stat[]
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
 }
 
-model userCard {
+model UserCard {
   id            String      @id @default(auto()) @map("_id") @db.ObjectId
   customer      User        @relation(fields: [customerId], references: [id])
   customerId    String      @db.ObjectId
-  companyCard   companyCard @relation(fields: [companyCardId], references: [id])
+  companyCard   CompanyCard @relation(fields: [companyCardId], references: [id])
   companyCardId String      @db.ObjectId
-  currentPoints Int         @default(0)
+  currentPoints Int         @default(1)
   xCompleted    Int         @default(0)
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
@@ -78,10 +82,9 @@ model Ad {
 }
 
 model Stat {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  customer   User     @relation(fields: [customerId], references: [id])
-  customerId String   @db.ObjectId
-  company    Company  @relation(fields: [companyId], references: [id])
-  companyId  String   @db.ObjectId
-  date       DateTime
+  id            String      @id @default(auto()) @map("_id") @db.ObjectId
+  companyCardId String      @db.ObjectId
+  companyCard   CompanyCard @relation(fields: [companyCardId], references: [id])
+  type          StatType    @default(POINT)
+  date          DateTime    @default(now())
 }
