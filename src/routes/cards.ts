@@ -82,7 +82,7 @@ export async function cardRoutes(app: FastifyInstance) {
         }).parse(req.params)
 
         if (companyId) {
-            var card = await prisma.companyCard.findFirst({
+            var card = await prisma.companyCard.findMany({
                 where: { companyId }
             })
             return card

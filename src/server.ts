@@ -9,6 +9,7 @@ import { join } from 'path'
 import { authRoutes } from './routes/auth'
 import { adRoutes } from './routes/ads'
 import { cardRoutes } from './routes/cards' 
+import { statRoutes } from './routes/stats'
 
 const server = fastify()
 
@@ -39,6 +40,7 @@ server.register(fastifyStatic, {
 server.register(authRoutes)
 server.register(adRoutes)
 server.register(cardRoutes)
+server.register(statRoutes)
 
 const port = Number(process.env.PORT)
 server

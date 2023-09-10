@@ -120,7 +120,8 @@ export async function authRoutes(app: FastifyInstance) {
                 company: {
                     name: company.name,
                     email: company.email,
-                    role: Roles.Owner
+                    role: Roles.Owner,
+                    isPremium: company.isPremium
                 },
                 accessToken
             })

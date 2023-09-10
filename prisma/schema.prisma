@@ -30,6 +30,7 @@ model Company {
   cards      CompanyCard[]
   ads        Ad[]
   employeeId String?  @db.ObjectId
+  isPremium  Boolean  @default(false)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 }
