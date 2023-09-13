@@ -131,39 +131,44 @@ export async function cardRoutes(app: FastifyInstance) {
     })
 
     app.put('/edit/loyalty', async (req, res) => {
-        const { cardId, companyCardId } = z.object({
+        const { cardId, companyCardId, token } = z.object({
             cardId: z.string(),
             companyCardId: z.string(),
+            token: z.string().transform((t) => app.jwt.verify(t)).pipe(z.object({age: z.coerce.date()}))
         }).parse(req.body)
         const companyCard = await prisma.companyCard.findUnique({ where: { id: companyCardId } })
         const card = await prisma.userCard.findUnique({ where: { id: cardId } })
 
-        if (card!.currentPoints == companyCard!.maxPoints) {
-            await prisma.userCard.update({
-                where: { id: cardId },
-                data: {
-                    currentPoints: 0,
-                    xCompleted: card!.xCompleted + 1
-                }
-            })
-            await prisma.stat.create({
-                data: {
-                    companyCard: { connect: { id: companyCardId } },
-                    type: StatType.COMPLETION
-                }
-            })
+        if ((Date.now() - token.age.getTime()) < 300000) {
+            if (card!.currentPoints == companyCard!.maxPoints) {
+                await prisma.userCard.update({
+                    where: { id: cardId },
+                    data: {
+                        currentPoints: 0,
+                        xCompleted: card!.xCompleted + 1
+                    }
+                })
+                await prisma.stat.create({
+                    data: {
+                        companyCard: { connect: { id: companyCardId } },
+                        type: StatType.COMPLETION
+                    }
+                })
+            } else {
+                await prisma.userCard.update({
+                    where: { id: cardId },
+                    data: {
+                        currentPoints: card!.currentPoints + 1
+                    }
+                })
+                await prisma.stat.create({
+                    data: {
+                        companyCard: { connect: { id: companyCardId } }
+                    }
+                })
+            }
         } else {
-            await prisma.userCard.update({
-                where: { id: cardId },
-                data: {
-                    currentPoints: card!.currentPoints + 1
-                }
-            })
-            await prisma.stat.create({
-                data: {
-                    companyCard: { connect: { id: companyCardId } }
-                }
-            })
+            return res.status(403).send({ message: 'Token inválido'})
         }
     })
 

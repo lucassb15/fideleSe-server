@@ -18,7 +18,7 @@ server.register(cors, {
 })
 
 server.register(jwt, {
-  secret: 'fidelese'
+  secret: String(process.env.SECRET)
 })
 
 server.register(multipart, {
