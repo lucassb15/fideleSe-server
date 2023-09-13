@@ -14,7 +14,7 @@ export async function cardRoutes(app: FastifyInstance) {
             name: z.string(),
             maxPoints: z.coerce.number().positive(),
             image: z.any().optional().refine((file) => !!file && file.mimetype.startsWith("image"), {
-                message: "Only images are allowed to be sent.",
+                message: "Somente arquivos de imagem são permitidos",
             })
         }).parse(req.body)
 
@@ -44,7 +44,7 @@ export async function cardRoutes(app: FastifyInstance) {
             name: z.string(),
             maxPoints: z.coerce.number().positive(),
             image: z.any().optional().refine((file) => !!file && file.mimetype.startsWith("image"), {
-                message: "Only images are allowed to be sent.",
+                message: "Somente arquivos de imagem são permitidos",
             })
         }).parse(req.body)
 

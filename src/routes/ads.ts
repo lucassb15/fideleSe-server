@@ -11,7 +11,7 @@ export async function adRoutes(app: FastifyInstance) {
         const { companyId, image } = z.object({
             companyId: z.string(),
             image: z.any().refine((file) => !!file && file.mimetype.startsWith("image"), {
-                message: "Only images are allowed to be sent.",
+                message: "Somente arquivos de imagem são permitidos",
             })
         }).parse(req.body)
         filePath = await saveImage(image.filename, image.data, companyId)
@@ -53,7 +53,7 @@ export async function adRoutes(app: FastifyInstance) {
             adId: z.string(),
             companyId: z.string(),
             image: z.any().refine((file) => !!file && file.mimetype.startsWith("image"), {
-                message: "Only images are allowed to be sent.",
+                message: "Somente arquivos de imagem são permitidos",
             })
         }).parse(req.body)
         filePath = await saveImage(image.filename, image.data, companyId)

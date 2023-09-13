@@ -18,7 +18,7 @@ export async function authRoutes(app: FastifyInstance) {
             isEmployee: z.boolean().default(false),
             companyId: z.string().optional()
         }).refine((data) => data.password === data.confirmPassword, {
-            message: 'Passwords don\'t match',
+            message: 'As senhas não batem',
             path: ['password', 'confirmPassword']
         })
         const { name, email, password, isEmployee, companyId } = bodySchema.parse(req.body)
@@ -28,7 +28,7 @@ export async function authRoutes(app: FastifyInstance) {
             let user = await prisma.user.findUnique({ where: { email } }) || await prisma.company.findUnique({ where: { email } })
 
             if (user) {
-                return res.status(500).send({ message: 'Email already registered' })
+                return res.status(500).send({ message: 'Email já registrado' })
             } else {
                 user = await prisma.user.create({ data: {
                     name,
@@ -58,10 +58,10 @@ export async function authRoutes(app: FastifyInstance) {
             password: z.string(),
             confirmPassword: z.string(),
             logo: z.any().optional().refine((file) => !!file && file.mimetype.startsWith("image"), {
-                message: "Only images are allowed to be sent.",
+                message: "Somente arquivos de imagem são permitidos",
             })
         }).refine((data) => data.password === data.confirmPassword, {
-            message: 'Passwords don\'t match',
+            message: 'As senhas não batem',
             path: ['password', 'confirmPassword']
         })
         const { name, email, password, logo } = bodySchema.parse(req.body)
@@ -74,7 +74,7 @@ export async function authRoutes(app: FastifyInstance) {
             let company = await prisma.user.findUnique({ where: { email } }) || await prisma.company.findUnique({ where: { email } })
 
             if (company) {
-                return res.status(500).send({ message: 'Email already registered' })
+                return res.status(500).send({ message: 'Email já registrado' })
             } else {
                 company = await prisma.company.create({ data: {
                     name,
@@ -127,7 +127,7 @@ export async function authRoutes(app: FastifyInstance) {
             })
         } else {
             return res.status(400).send({
-                message: 'Invalid email or password',
+                message: 'Email ou senha inválidos',
             })
         }
     })
