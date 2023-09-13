@@ -131,4 +131,18 @@ export async function authRoutes(app: FastifyInstance) {
             })
         }
     })
+
+    app.get('/company/:companyId/employees', async (req, res) => {
+        const { companyId } = z.object({
+            companyId: z.string().optional()
+        }).parse(req.params)
+
+        try {
+            const employees = await prisma.user.findMany({ where: { companyId } });
+            res.status(200).send(employees);
+        } catch (error) {
+            console.error(error);
+            res.status(500).send({ message: 'Internal server error' });
+        }
+    })
 }
