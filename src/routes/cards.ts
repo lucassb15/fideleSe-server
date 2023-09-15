@@ -140,7 +140,7 @@ export async function cardRoutes(app: FastifyInstance) {
         const card = await prisma.userCard.findUnique({ where: { id: cardId } })
 
         if ((Date.now() - token.age) < 60000) {
-            if (card!.currentPoints == companyCard!.maxPoints) {
+            if (card!.currentPoints == (companyCard!.maxPoints - 1)) {
                 await prisma.userCard.update({
                     where: { id: cardId },
                     data: {
