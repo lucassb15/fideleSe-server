@@ -134,12 +134,12 @@ export async function cardRoutes(app: FastifyInstance) {
         const { cardId, companyCardId, token } = z.object({
             cardId: z.string(),
             companyCardId: z.string(),
-            token: z.string().transform((t) => app.jwt.verify(t)).pipe(z.object({age: z.coerce.date()}))
+            token: z.string().transform((t) => app.jwt.verify(t)).pipe(z.object({age: z.coerce.number()}))
         }).parse(req.body)
         const companyCard = await prisma.companyCard.findUnique({ where: { id: companyCardId } })
         const card = await prisma.userCard.findUnique({ where: { id: cardId } })
 
-        if ((Date.now() - token.age.getTime()) < 300000) {
+        if ((Date.now() - token.age) < 60000) {
             if (card!.currentPoints == companyCard!.maxPoints) {
                 await prisma.userCard.update({
                     where: { id: cardId },
