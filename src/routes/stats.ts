@@ -11,7 +11,7 @@ export async function statRoutes(app: FastifyInstance) {
             companyId: z.string(),
             type: z.string().default("all"),
             startDate: z.string().transform((dateString) => parseDate(dateString)).pipe(z.date()),
-            endDate: z.string().transform((dateString) => parseDate(dateString)).pipe(z.date())
+            endDate: z.string().transform((dateString) => parseDate(dateString, true)).pipe(z.date())
         }).parse(req.params)
 
         if (type == "completed") {
