@@ -1,8 +1,15 @@
 import { existsSync, mkdirSync, writeFileSync } from "fs"
 import { join } from "path"
 
-export async function saveImage(filename: string, data: Promise<any>, companyId?: string) {
-    var relativePath: string | undefined, filePath: string | undefined
+/**
+ * Saves the provided image data to a file and returns the relative path to it.
+ * @param filename The name of the image to be saved.
+ * @param data The image data.
+ * @param companyId The id of the company saving the image. If not provided, the image will be saved on the 'logos' folder.
+ * @returns The relative path to where the image was saved.
+ */
+export async function saveImage(filename: string, data: Promise<Buffer>, companyId?: string) {
+    var relativePath: string, filePath: string
     if (companyId) {
         relativePath = join('uploads', companyId, Date.now().toString() + filename)
         if (!existsSync(join(__dirname, '../../uploads', companyId))) {
@@ -15,6 +22,6 @@ export async function saveImage(filename: string, data: Promise<any>, companyId?
         }
     }
     filePath = join(__dirname, '../../', relativePath)
-    data.then((buffer: string) => { writeFileSync(filePath!, buffer) })
+    data.then((buffer: Buffer) => { writeFileSync(filePath, buffer) })
     return relativePath.replace(/\\/g, '/')
 }
