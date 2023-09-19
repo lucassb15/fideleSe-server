@@ -11,6 +11,8 @@ import { adRoutes } from './routes/ads'
 import { cardRoutes } from './routes/cards' 
 import { statRoutes } from './routes/stats'
 import { qrcodeRoutes } from './routes/qrcode'
+import { companyRoutes } from './routes/company'
+import { userRoutes } from './routes/user'
 
 const server = fastify()
 
@@ -43,6 +45,8 @@ server.register(adRoutes)
 server.register(cardRoutes)
 server.register(statRoutes)
 server.register(qrcodeRoutes)
+server.register(companyRoutes)
+server.register(userRoutes)
 
 const port = Number(process.env.PORT)
 server
