@@ -43,6 +43,19 @@ export async function authRoutes(app: FastifyInstance) {
                         data: { employeeId: user.id }
                     })
                 }
+                const { password, ...rest } = user
+                const userRole = user.isEmployee ? Roles.Employee : Roles.Customer;
+                const accessTokenPayload = { ...rest, role: userRole }
+                const accessToken = app.jwt.sign(accessTokenPayload, { expiresIn: '7d' })
+
+                return res.status(200).send({
+                    user: {
+                        name: user.name,
+                        email: user.email,
+                        role: userRole
+                    },
+                    accessToken
+                })
             }
         } catch (err) {
             console.log(err)
@@ -51,7 +64,7 @@ export async function authRoutes(app: FastifyInstance) {
 
     //register company
     app.post('/register/company', async (req, res) => {
-        var filePath: string | undefined
+        let filePath: string | undefined
         const bodySchema = z.object({
             name: z.string(),
             email: z.string().email(),
@@ -82,6 +95,19 @@ export async function authRoutes(app: FastifyInstance) {
                     logo: filePath,
                     password: hashedPassword
                 } })
+                const { password, ...rest } = company
+                const accessTokenPayload = { ...rest, role: Roles.Owner }
+                const accessToken = app.jwt.sign(accessTokenPayload, { expiresIn: '7d' })
+
+                return res.status(200).send({
+                    company: {
+                        name: company.name,
+                        email: company.email,
+                        role: Roles.Owner,
+                        isPremium: company.isPremium
+                    },
+                    accessToken
+                })
             }
         } catch (err) {
             console.log(err)

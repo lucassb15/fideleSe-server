@@ -9,7 +9,7 @@ import { join } from "path"
  * @returns The relative path to where the image was saved.
  */
 export async function saveImage(filename: string, data: Promise<Buffer>, companyId?: string) {
-    var relativePath: string, filePath: string
+    let relativePath: string, filePath: string
     if (companyId) {
         relativePath = join('uploads', companyId, Date.now().toString() + filename)
         if (!existsSync(join(__dirname, '../../uploads', companyId))) {

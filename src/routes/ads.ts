@@ -7,7 +7,7 @@ const prisma = new PrismaClient()
 
 export async function adRoutes(app: FastifyInstance) {
     app.post('/create/ad', async (req, res) => {
-        var filePath: string | undefined
+        let filePath: string
         const { companyId, image } = z.object({
             companyId: z.string(),
             image: z.any().refine((file) => !!file && file.mimetype.startsWith("image"), {
@@ -17,7 +17,7 @@ export async function adRoutes(app: FastifyInstance) {
         filePath = await saveImage(image.filename, image.data, companyId)
 
         try {
-            const ad = await prisma.ad.create({
+            await prisma.ad.create({
                 data: {
                     image: filePath,
                     company: { connect: { id: companyId } }
@@ -48,7 +48,7 @@ export async function adRoutes(app: FastifyInstance) {
     })
 
     app.put('/edit/ad', async (req, res) => {
-        var filePath: string | undefined = undefined
+        let filePath: string
         const { adId, companyId, image } = z.object({
             adId: z.string(),
             companyId: z.string(),

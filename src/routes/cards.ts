@@ -8,7 +8,7 @@ const prisma = new PrismaClient()
 export async function cardRoutes(app: FastifyInstance) {
     // #region companyCard
     app.post('/create/card', async (req, res) => {
-        var filePath: string | undefined = undefined
+        let filePath: string | undefined
         const { companyId, name, maxPoints, image } = z.object({
             companyId: z.string(),
             name: z.string(),
@@ -37,7 +37,7 @@ export async function cardRoutes(app: FastifyInstance) {
     })
 
     app.put('/edit/card', async (req, res) => {
-        var filePath: string | undefined = undefined
+        let filePath: string | undefined
         const { cardId, companyId, name, maxPoints, image } = z.object({
             cardId: z.string(),
             companyId: z.string(),

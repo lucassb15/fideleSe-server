@@ -14,8 +14,7 @@ export function parseDate(params: string, end?: boolean) {
     const day = params.substring(6, 8)
     const date = new Date([year, month, day].join('/'))
 
-    if (end) {
-        date.setUTCHours(23, 59, 59, 999)
-    }
+    if (end) date.setUTCHours(23, 59, 59, 999)
+
     return date
 }
