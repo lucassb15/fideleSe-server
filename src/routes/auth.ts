@@ -40,7 +40,7 @@ export async function authRoutes(app: FastifyInstance) {
                 if (user.companyId) {
                     await prisma.company.update({
                         where: { id: user.companyId },
-                        data: { employeeId: user.id }
+                        data: { employeeIds: { push: user.id } }
                     })
                 }
                 const { password, ...rest } = user
