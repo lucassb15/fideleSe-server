@@ -8,7 +8,7 @@ import { join } from "path"
  * @param companyId The id of the company saving the image. If not provided, the image will be saved on the 'logos' folder.
  * @returns The relative path to where the image was saved.
  */
-export async function saveImage(filename: string, data: Promise<Buffer>, companyId?: string) {
+export async function saveImage(filename: string, data: Promise<Buffer>, companyId?: string): Promise<string> {
     let relativePath: string, filePath: string
     if (companyId) {
         relativePath = join('uploads', companyId, Date.now().toString() + filename)

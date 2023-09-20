@@ -8,7 +8,7 @@
  * @param end If `true`, the returned `Date` object's hours will be set to `23:59:59` (end of the day).
  * @returns A new `Date` object from the provided string.
  */
-export function parseDate(params: string, end?: boolean) {
+export function parseDate(params: string, end?: boolean): Date {
     const year = params.substring(0, 4)
     const month = params.substring(4, 6)
     const day = params.substring(6, 8)
