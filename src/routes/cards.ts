@@ -113,11 +113,14 @@ export async function cardRoutes(app: FastifyInstance) {
             companyCardId: z.string()
         }).parse(req.body)
 
+        const companyCardMaxPoints = (await prisma.companyCard.findUniqueOrThrow({ where: { id: companyCardId } })).maxPoints
+
         try {
             await prisma.userCard.create({
                 data:{
                     customer: { connect: { id: customerId } },
-                    companyCard: { connect: { id: companyCardId } }
+                    companyCard: { connect: { id: companyCardId } },
+                    previousMaxP: companyCardMaxPoints
                 }
             })
             await prisma.stat.create({
@@ -136,16 +139,17 @@ export async function cardRoutes(app: FastifyInstance) {
             companyCardId: z.string(),
             token: z.string().transform((t) => app.jwt.verify(t)).pipe(z.object({age: z.coerce.number()}))
         }).parse(req.body)
-        const companyCard = await prisma.companyCard.findUnique({ where: { id: companyCardId } })
-        const card = await prisma.userCard.findUnique({ where: { id: cardId } })
+        const companyCardMaxPoints = (await prisma.companyCard.findUniqueOrThrow({ where: { id: companyCardId } })).maxPoints
+        const card = await prisma.userCard.findUniqueOrThrow({ where: { id: cardId } })
 
         if ((Date.now() - token.age) < 60000) {
-            if (card!.currentPoints == (companyCard!.maxPoints - 1)) {
+            if (card.currentPoints == (card.previousMaxP - 1)) {
                 await prisma.userCard.update({
                     where: { id: cardId },
                     data: {
                         currentPoints: 0,
-                        xCompleted: card!.xCompleted + 1
+                        xCompleted: card.xCompleted + 1,
+                        previousMaxP: companyCardMaxPoints
                     }
                 })
                 await prisma.stat.create({
@@ -158,7 +162,7 @@ export async function cardRoutes(app: FastifyInstance) {
                 await prisma.userCard.update({
                     where: { id: cardId },
                     data: {
-                        currentPoints: card!.currentPoints + 1
+                        currentPoints: card.currentPoints + 1
                     }
                 })
                 await prisma.stat.create({

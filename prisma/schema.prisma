@@ -68,6 +68,7 @@ model UserCard {
   companyCardId String      @db.ObjectId
   currentPoints Int         @default(1)
   xCompleted    Int         @default(0)
+  previousMaxP  Int
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 }
