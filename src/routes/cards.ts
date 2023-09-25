@@ -180,11 +180,34 @@ export async function cardRoutes(app: FastifyInstance) {
         const { customerId } = z.object({
             customerId: z.string()
         }).parse(req.params)
-
+    
         const cards = await prisma.userCard.findMany({
-            where: { customerId }
+            where: { customerId },
+            select: {
+                id: true,
+                currentPoints: true,
+                companyCard: {
+                    select: {
+                        id: true,
+                        name: true,
+                        maxPoints: true,
+                        image: true
+                    }
+                }
+            }
         })
+    
+        const formattedCards = cards.map(card => ({
+            id: card.id,
+            customerId: customerId,
+            companyId: card.companyCard.id,
+            name: card.companyCard.name,
+            maxPoints: card.companyCard.maxPoints,
+            currentPoints: card.currentPoints,
+            image: card.companyCard.image
+        }))
 
-        return cards
-    })
+
+        res.send(formattedCards);
+    })    
 }
