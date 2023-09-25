@@ -108,28 +108,31 @@ export async function cardRoutes(app: FastifyInstance) {
     // #endregion
 
     app.post('/create/loyalty', async (req, res) => {
-        const { customerId, companyCardId } = z.object({
+        const { customerId, companyCardId, token } = z.object({
             customerId: z.string(),
-            companyCardId: z.string()
+            companyCardId: z.string(),
+            token: z.string().transform((t) => app.jwt.verify(t)).pipe(z.object({age: z.coerce.number()}))
         }).parse(req.body)
 
         const companyCardMaxPoints = (await prisma.companyCard.findUniqueOrThrow({ where: { id: companyCardId } })).maxPoints
-
-        try {
-            await prisma.userCard.create({
-                data:{
-                    customer: { connect: { id: customerId } },
-                    companyCard: { connect: { id: companyCardId } },
-                    previousMaxP: companyCardMaxPoints
-                }
-            })
-            await prisma.stat.create({
-                data: {
-                    companyCard: { connect: { id: companyCardId } }
-                }
-            })
-        } catch (err) {
-            console.log(err)
+        
+        if ((Date.now() - token.age) < 60000){
+          try {
+              await prisma.userCard.create({
+                  data:{
+                      customer: { connect: { id: customerId } },
+                      companyCard: { connect: { id: companyCardId } },
+                      previousMaxP: companyCardMaxPoints
+                  }
+              })
+              await prisma.stat.create({
+                  data: {
+                      companyCard: { connect: { id: companyCardId } }
+                  }
+              })
+          } catch (err) {
+              console.log(err)
+          }
         }
     })
 
