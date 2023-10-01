@@ -1,7 +1,7 @@
 import { FastifyInstance } from "fastify"
 import { z } from 'zod'
 import { PrismaClient } from "@prisma/client"
-import { saveImage } from "../lib/imageHandling"
+import { deleteImage, saveImage } from "../lib/imageHandling"
 
 const prisma = new PrismaClient()
 
@@ -75,6 +75,8 @@ export async function adRoutes(app: FastifyInstance) {
         const { adId } = z.object({
             adId: z.string()
         }).parse(req.params)
+
+        await deleteImage((await prisma.ad.findUniqueOrThrow({ where: { id: adId } })).image)
 
         await prisma.ad.delete({
             where: { id: adId }

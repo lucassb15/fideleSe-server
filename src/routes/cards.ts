@@ -1,7 +1,7 @@
 import { FastifyInstance } from "fastify"
 import { z } from 'zod'
 import { PrismaClient, StatType } from "@prisma/client"
-import { saveImage } from "../lib/imageHandling"
+import { deleteImage, saveImage } from "../lib/imageHandling"
 
 const prisma = new PrismaClient()
 
@@ -101,6 +101,8 @@ export async function cardRoutes(app: FastifyInstance) {
             cardId: z.string()
         }).parse(req.params)
 
+        await deleteImage((await prisma.companyCard.findUniqueOrThrow({ where: { id: cardId } })).image)
+
         await prisma.companyCard.delete({
             where: { id: cardId }
         })
@@ -146,7 +148,7 @@ export async function cardRoutes(app: FastifyInstance) {
         const card = await prisma.userCard.findUniqueOrThrow({ where: { id: cardId } })
 
         if ((Date.now() - token.age) < 60000) {
-            if (card.currentPoints == (card.previousMaxP - 1)) {
+            if (card.currentPoints == (card.previousMaxP)) {
                 await prisma.userCard.update({
                     where: { id: cardId },
                     data: {
@@ -212,5 +214,5 @@ export async function cardRoutes(app: FastifyInstance) {
 
 
         res.send(formattedCards);
-    })    
+    })
 }

@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, writeFileSync } from "fs"
+import { existsSync, mkdirSync, writeFileSync, rmSync } from "fs"
 import { join } from "path"
 
 /**
@@ -24,4 +24,10 @@ export async function saveImage(filename: string, data: Promise<Buffer>, company
     filePath = join(__dirname, '../../', relativePath)
     data.then((buffer: Buffer) => { writeFileSync(filePath, buffer) })
     return relativePath.replace(/\\/g, '/')
+}
+
+export async function deleteImage(filePath: string) {
+  const absolutePath = join(__dirname, '../..', filePath)
+
+ rmSync(absolutePath, { force: true })
 }
