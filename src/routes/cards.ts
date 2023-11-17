@@ -5,8 +5,10 @@ import { deleteImage, saveImage } from "../lib/imageHandling"
 
 const prisma = new PrismaClient()
 
+
 export async function cardRoutes(app: FastifyInstance) {
     // #region companyCard
+    
     app.post('/create/card', async (req, res) => {
         let filePath: string | undefined
         const { companyId, name, maxPoints, image } = z.object({
@@ -113,13 +115,17 @@ export async function cardRoutes(app: FastifyInstance) {
         const { customerId, companyCardId, token } = z.object({
             customerId: z.string(),
             companyCardId: z.string(),
-            token: z.string().transform((t) => app.jwt.verify(t)).pipe(z.object({age: z.coerce.number()}))
-        }).parse(req.body)
+            token: z
+                .string()
+                .transform((t) => app.jwt.verify(t, { algorithms: ['HS256'] }))
+                .pipe(z.object({ age: z.coerce.number() })),
+            }).parse(req.body);
 
         const companyCardMaxPoints = (await prisma.companyCard.findUniqueOrThrow({ where: { id: companyCardId } })).maxPoints
         
-        if ((Date.now() - token.age) < 60000){
+        if ((Date.now() - token.age) < 90000){
           try {
+
               await prisma.userCard.create({
                   data:{
                       customer: { connect: { id: customerId } },
