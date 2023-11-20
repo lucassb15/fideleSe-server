@@ -8,7 +8,7 @@ export async function qrcodeRoutes(app: FastifyInstance) {
             cardId: z.string(),
             companyCardId: z.string()
         }).parse(req.body)
-        const token = app.jwt.sign({ age: Date.now().toString() }, { expiresIn: '1m' })
+        const token = app.jwt.sign({ age: Date.now().toString() }, { expiresIn: '5h' })
         const payload = JSON.stringify({ cardId, companyCardId, token })
 
         try {
@@ -25,7 +25,7 @@ export async function qrcodeRoutes(app: FastifyInstance) {
         const { customerId } = z.object({
             customerId: z.string()
         }).parse(req.body)
-        const token = app.jwt.sign({ age: Date.now().toString() }, { expiresIn: '1m' })
+        const token = app.jwt.sign({ age: Date.now().toString() }, { expiresIn: '5h' })
         const payload = JSON.stringify({ customerId, token })
 
         try {

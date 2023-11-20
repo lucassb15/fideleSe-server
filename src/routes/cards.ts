@@ -115,17 +115,13 @@ export async function cardRoutes(app: FastifyInstance) {
         const { customerId, companyCardId, token } = z.object({
             customerId: z.string(),
             companyCardId: z.string(),
-            token: z
-                .string()
-                .transform((t) => app.jwt.verify(t, { algorithms: ['HS256'] }))
-                .pipe(z.object({ age: z.coerce.number() })),
-            }).parse(req.body);
+            token: z.string().transform((t) => app.jwt.verify(t)).pipe(z.object({ age: z.coerce.number() })),
+          }).parse(req.body);
 
         const companyCardMaxPoints = (await prisma.companyCard.findUniqueOrThrow({ where: { id: companyCardId } })).maxPoints
-        
-        if ((Date.now() - token.age) < 90000){
-          try {
 
+        if ((Date.now() - token.age) < 18000000){
+          try {
               await prisma.userCard.create({
                   data:{
                       customer: { connect: { id: customerId } },
@@ -150,10 +146,15 @@ export async function cardRoutes(app: FastifyInstance) {
             companyCardId: z.string(),
             token: z.string().transform((t) => app.jwt.verify(t)).pipe(z.object({age: z.coerce.number()}))
         }).parse(req.body)
-        const companyCardMaxPoints = (await prisma.companyCard.findUniqueOrThrow({ where: { id: companyCardId } })).maxPoints
+        const companyCard = (await prisma.companyCard.findUniqueOrThrow({ where: { id: companyCardId } }))
+        const companyCardMaxPoints = companyCard.maxPoints
         const card = await prisma.userCard.findUniqueOrThrow({ where: { id: cardId } })
 
-        if ((Date.now() - token.age) < 60000) {
+        if (card.companyCardId != companyCard.id) {
+          return res.status(403).send({ message: 'Cartão não corresponde à empresa correta.'})
+        }
+
+        if ((Date.now() - token.age) < 18000000) {
             if (card.currentPoints == (card.previousMaxP)) {
                 await prisma.userCard.update({
                     where: { id: cardId },
