@@ -2,6 +2,7 @@ import { FastifyInstance } from "fastify"
 import { z } from 'zod'
 import { PrismaClient, StatType } from "@prisma/client"
 import { deleteImage, saveImage } from "../lib/imageHandling"
+import { parseDate } from "../lib/dateParsing"
 
 const prisma = new PrismaClient()
 
@@ -11,13 +12,14 @@ export async function cardRoutes(app: FastifyInstance) {
     
     app.post('/create/card', async (req, res) => {
         let filePath: string | undefined
-        const { companyId, name, maxPoints, image } = z.object({
+        const { companyId, name, maxPoints, image, expirationDate } = z.object({
             companyId: z.string(),
             name: z.string(),
             maxPoints: z.coerce.number().positive(),
             image: z.any().optional().refine((file) => !!file && file.mimetype.startsWith("image"), {
                 message: "Somente arquivos de imagem são permitidos",
-            })
+            }),
+            expirationDate: z.string().transform((dateString) => parseDate(dateString)).pipe(z.date())
         }).parse(req.body)
 
         if (image) {
@@ -30,6 +32,7 @@ export async function cardRoutes(app: FastifyInstance) {
                     name,
                     maxPoints,
                     image: filePath,
+                    expirationDate,
                     company: { connect: { id: companyId } }
                 }
             })
@@ -40,14 +43,15 @@ export async function cardRoutes(app: FastifyInstance) {
 
     app.put('/edit/card', async (req, res) => {
         let filePath: string | undefined
-        const { cardId, companyId, name, maxPoints, image } = z.object({
+        const { cardId, companyId, name, maxPoints, image, expirationDate } = z.object({
             cardId: z.string(),
             companyId: z.string(),
             name: z.string(),
             maxPoints: z.coerce.number().positive(),
             image: z.any().optional().refine((file) => !!file && file.mimetype.startsWith("image"), {
                 message: "Somente arquivos de imagem são permitidos",
-            })
+            }),
+            expirationDate: z.string().transform((dateString) => parseDate(dateString)).pipe(z.date())
         }).parse(req.body)
 
         if (image) {
@@ -61,7 +65,8 @@ export async function cardRoutes(app: FastifyInstance) {
                     data: {
                         name,
                         maxPoints,
-                        image: filePath
+                        image: filePath,
+                        expirationDate
                     }
                 })
             } else {

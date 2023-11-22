@@ -21,43 +21,46 @@ enum StatType {
 }
 
 model Company {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  email       String   @unique
+  id          String        @id @default(auto()) @map("_id") @db.ObjectId
+  email       String        @unique
   name        String
   address     String?
   password    Password
-  logo        String   @default("path/to/placeholder/image")
+  logo        String        @default("path/to/placeholder/image")
   cards       CompanyCard[]
   ads         Ad[]
-  employeeIds String[]  @db.ObjectId
-  isPremium   Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  employeeIds String[]      @db.ObjectId
+  isPremium   Boolean       @default(false)
+  isActive    Boolean       @default(true)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
 }
 
 model User {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  email      String   @unique
+  id         String     @id @default(auto()) @map("_id") @db.ObjectId
+  email      String     @unique
   name       String
   password   Password
   cards      UserCard[]
-  isEmployee Boolean  @default(false)
-  companyId  String?  @db.ObjectId
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  isEmployee Boolean    @default(false)
+  companyId  String?    @db.ObjectId
+  isActive   Boolean    @default(true)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
 }
 
 model CompanyCard {
-  id            String     @id @default(auto()) @map("_id") @db.ObjectId
-  company       Company    @relation(fields: [companyId], references: [id])
-  companyId     String     @db.ObjectId
-  userCards     UserCard[]
-  name          String
-  maxPoints     Int
-  image         String     @default("path/to/placeholder/image")
-  stats         Stat[]
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
+  id             String     @id @default(auto()) @map("_id") @db.ObjectId
+  company        Company    @relation(fields: [companyId], references: [id])
+  companyId      String     @db.ObjectId
+  userCards      UserCard[]
+  name           String
+  maxPoints      Int
+  image          String     @default("path/to/placeholder/image")
+  stats          Stat[]
+  expirationDate DateTime
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
 }
 
 model UserCard {
@@ -69,6 +72,7 @@ model UserCard {
   currentPoints Int         @default(1)
   xCompleted    Int         @default(0)
   previousMaxP  Int
+  isExpired     Boolean     @default(false)
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 }
