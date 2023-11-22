@@ -58,7 +58,7 @@ model CompanyCard {
   maxPoints      Int
   image          String     @default("path/to/placeholder/image")
   stats          Stat[]
-  expirationDate DateTime
+  expirationTime Int
   createdAt      DateTime   @default(now())
   updatedAt      DateTime   @updatedAt
 }
