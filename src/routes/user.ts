@@ -25,7 +25,7 @@ export async function userRoutes(app: FastifyInstance) {
         try {
             const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } })
 
-            await prisma.user.update({ where: { id: userId }, 
+            await prisma.user.update({ where: { id: userId },
                 data: {
                     name: name || user.name,
                     password: hashedPassword || user.password
@@ -34,5 +34,37 @@ export async function userRoutes(app: FastifyInstance) {
         } catch (err) {
             console.log(err)
         }
+    })
+
+    app.put('/disable/user', async (req, res) => {
+      const { userId } = z.object({
+        userId: z.string()
+      }).parse(req.body)
+
+      try {
+        await prisma.user.update({ where: { id: userId },
+          data: {
+            isActive: false
+          }
+        })
+      } catch (err) {
+        console.log(err)
+      }
+    })
+
+    app.put('/enable/user', async (req, res) => {
+      const { userId } = z.object({
+        userId: z.string()
+      }).parse(req.body)
+
+      try {
+        await prisma.user.update({ where: { id: userId },
+          data: {
+            isActive: true
+          }
+        })
+      } catch (err) {
+        console.log(err)
+      }
     })
 }

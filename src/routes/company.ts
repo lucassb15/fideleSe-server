@@ -57,4 +57,36 @@ export async function companyRoutes(app: FastifyInstance) {
             console.log(err)
         }
     })
+
+    app.put('/disable/company', async (req, res) => {
+      const { companyId } = z.object({
+        companyId: z.string()
+      }).parse(req.body)
+
+      try {
+        await prisma.company.update({ where: { id: companyId },
+          data: {
+            isActive: false
+          }
+        })
+      } catch (err) {
+        console.log(err)
+      }
+    })
+
+    app.put('/enable/company', async (req, res) => {
+      const { companyId } = z.object({
+        companyId: z.string()
+      }).parse(req.body)
+
+      try {
+        await prisma.company.update({ where: { id: companyId },
+          data: {
+            isActive: true
+          }
+        })
+      } catch (err) {
+        console.log(err)
+      }
+    })
 }
