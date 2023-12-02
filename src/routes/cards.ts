@@ -209,7 +209,12 @@ export async function cardRoutes(app: FastifyInstance) {
                         name: true,
                         maxPoints: true,
                         expirationTime: true,
-                        image: true
+                        image: true,
+                        company: {
+                            select: {
+                                name: true
+                            }
+                        }
                     }
                 }
             }
@@ -219,6 +224,7 @@ export async function cardRoutes(app: FastifyInstance) {
             id: card.id,
             customerId: customerId,
             companyId: card.companyCard.id,
+            companyName: card.companyCard.company.name,
             name: card.companyCard.name,
             maxPoints: card.companyCard.maxPoints,
             currentPoints: card.currentPoints,
