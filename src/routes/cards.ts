@@ -227,6 +227,7 @@ export async function cardRoutes(app: FastifyInstance) {
                 id: true,
                 currentPoints: true,
                 xCompleted: true,
+                pendingRedeems: true,
                 companyCard: {
                     select: {
                         id: true,
@@ -254,6 +255,7 @@ export async function cardRoutes(app: FastifyInstance) {
             currentPoints: card.currentPoints,
             xCompleted: card.xCompleted,
             expirationTime: card.companyCard.expirationTime,
+            pendingRedeems: card.pendingRedeems,
             image: card.companyCard.image
         }))
 
