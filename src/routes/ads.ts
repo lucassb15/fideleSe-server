@@ -82,4 +82,38 @@ export async function adRoutes(app: FastifyInstance) {
             where: { id: adId }
         })
     })
+
+    app.put('/upgrade/ad', async (req, res) => {
+      const { adId } = z.object({
+        adId: z.string(),
+      }).parse(req.body)
+
+      try {
+        await prisma.ad.update({
+            where: { id: adId },
+            data: {
+                priority: true
+            }
+        })
+      } catch (err) {
+          console.log(err)
+      }
+    })
+
+    app.put('/downgrade/ad', async (req, res) => {
+      const { adId } = z.object({
+        adId: z.string(),
+      }).parse(req.body)
+
+      try {
+        await prisma.ad.update({
+            where: { id: adId },
+            data: {
+                priority: false
+            }
+        })
+      } catch (err) {
+          console.log(err)
+      }
+    })
 }
