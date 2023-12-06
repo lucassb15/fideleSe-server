@@ -76,17 +76,36 @@ export async function companyRoutes(app: FastifyInstance) {
 
     app.put('/enable/company', async (req, res) => {
       const { companyId } = z.object({
-        companyId: z.string()
-      }).parse(req.body)
-
+        companyId: z.string(),
+      }).parse(req.body);
+    
       try {
-        await prisma.company.update({ where: { id: companyId },
+        // Verifique a existência da empresa
+        const existingCompany = await prisma.company.findUnique({
+          where: { id: companyId },
+        });
+    
+        if (!existingCompany) {
+          return res.status(404).send({ message: 'Empresa não encontrada.' });
+        }
+    
+        // Atualize o campo isActive
+        const updatedCompany = await prisma.company.update({
+          where: { id: companyId },
           data: {
-            isActive: true
-          }
-        })
+            isActive: true,
+          },
+        });
+    
+        // Verifique se a atualização foi bem-sucedida
+        if (updatedCompany) {
+          return res.status(200).send({ success: true, message: 'Conta ativada.' });
+        } else {
+          return res.status(500).send({ success: false, message: 'Erro ao ativar a conta.' });
+        }
       } catch (err) {
-        console.log(err)
+        console.error(err);
+        return res.status(500).send({ success: false, message: 'Erro interno.' });
       }
     })
 }

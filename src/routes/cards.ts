@@ -164,7 +164,7 @@ export async function cardRoutes(app: FastifyInstance) {
         }
 
         if (((Date.now() - token.age) < 18000000) && isTokenValid) {
-            if (card.currentPoints == (card.previousMaxP)) {
+            if (card.currentPoints == (card.previousMaxP - 1)) {
                 await prisma.userCard.update({
                     where: { id: cardId },
                     data: {
@@ -233,7 +233,12 @@ export async function cardRoutes(app: FastifyInstance) {
                         name: true,
                         maxPoints: true,
                         expirationTime: true,
-                        image: true
+                        image: true,
+                        company: {
+                            select: {
+                                name: true
+                            }
+                        }
                     }
                 }
             }
@@ -243,6 +248,7 @@ export async function cardRoutes(app: FastifyInstance) {
             id: card.id,
             customerId: customerId,
             companyId: card.companyCard.id,
+            companyName: card.companyCard.company.name,
             name: card.companyCard.name,
             maxPoints: card.companyCard.maxPoints,
             currentPoints: card.currentPoints,
