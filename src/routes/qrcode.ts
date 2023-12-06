@@ -1,6 +1,10 @@
 import { FastifyInstance } from "fastify"
 import { z } from "zod"
 import { toDataURL } from "qrcode"
+import { PrismaClient } from "@prisma/client"
+import crypto from 'crypto'
+
+const prisma = new PrismaClient()
 
 export async function qrcodeRoutes(app: FastifyInstance) {
     app.post('/generate/qrcode', async (req, res) => {
@@ -8,11 +12,18 @@ export async function qrcodeRoutes(app: FastifyInstance) {
             cardId: z.string(),
             companyCardId: z.string()
         }).parse(req.body)
-        const token = app.jwt.sign({ age: Date.now().toString() }, { expiresIn: '5h' })
+        const uuid = crypto.randomBytes(5).toString('hex')
+        const token = app.jwt.sign({ age: Date.now().toString(), uuid }, { expiresIn: '5h' })
         const payload = JSON.stringify({ cardId, companyCardId, token })
 
         try {
             const qrcode = await toDataURL(payload)
+
+            await prisma.tokens.create({
+              data: {
+                uuid
+              }
+            })
 
             return res.status(200).send(qrcode)
         } catch (err) {
@@ -25,11 +36,18 @@ export async function qrcodeRoutes(app: FastifyInstance) {
         const { customerId } = z.object({
             customerId: z.string()
         }).parse(req.body)
-        const token = app.jwt.sign({ age: Date.now().toString() }, { expiresIn: '5h' })
+        const uuid = crypto.randomBytes(5).toString('hex')
+        const token = app.jwt.sign({ age: Date.now().toString(), uuid }, { expiresIn: '5h' })
         const payload = JSON.stringify({ customerId, token })
 
         try {
             const qrcode = await toDataURL(payload)
+
+            await prisma.tokens.create({
+              data: {
+                uuid
+              }
+            })
 
             return res.status(200).send(qrcode)
         } catch (err) {

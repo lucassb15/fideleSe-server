@@ -119,12 +119,13 @@ export async function cardRoutes(app: FastifyInstance) {
         const { customerId, companyCardId, token } = z.object({
             customerId: z.string(),
             companyCardId: z.string(),
-            token: z.string().transform((t) => app.jwt.verify(t)).pipe(z.object({ age: z.coerce.number() })),
+            token: z.string().transform((t) => app.jwt.verify(t)).pipe(z.object({ age: z.coerce.number(), uuid: z.string() })),
           }).parse(req.body);
 
         const companyCardMaxPoints = (await prisma.companyCard.findUniqueOrThrow({ where: { id: companyCardId } })).maxPoints
+        const isTokenValid = !!(await prisma.tokens.findUnique({ where: { uuid: token.uuid, used: false } }))
 
-        if ((Date.now() - token.age) < 18000000){
+        if (((Date.now() - token.age) < 18000000) && isTokenValid) {
           try {
               await prisma.userCard.create({
                   data:{
@@ -138,9 +139,12 @@ export async function cardRoutes(app: FastifyInstance) {
                       companyCard: { connect: { id: companyCardId } }
                   }
               })
+              await prisma.tokens.update({ where: { uuid: token.uuid }, data: { used: true } })
           } catch (err) {
               console.log(err)
           }
+        } else {
+          return res.status(403).send({ message: 'Token inválido'})
         }
     })
 
@@ -148,23 +152,25 @@ export async function cardRoutes(app: FastifyInstance) {
         const { cardId, companyCardId, token } = z.object({
             cardId: z.string(),
             companyCardId: z.string(),
-            token: z.string().transform((t) => app.jwt.verify(t)).pipe(z.object({age: z.coerce.number()}))
+            token: z.string().transform((t) => app.jwt.verify(t)).pipe(z.object({ age: z.coerce.number(), uuid: z.string() }))
         }).parse(req.body)
         const companyCard = (await prisma.companyCard.findUniqueOrThrow({ where: { id: companyCardId } }))
         const companyCardMaxPoints = companyCard.maxPoints
         const card = await prisma.userCard.findUniqueOrThrow({ where: { id: cardId } })
+        const isTokenValid = !!(await prisma.tokens.findUnique({ where: { uuid: token.uuid, used: false } }))
 
         if (card.companyCardId != companyCard.id) {
           return res.status(403).send({ message: 'Cartão não corresponde à empresa correta.'})
         }
 
-        if ((Date.now() - token.age) < 18000000) {
+        if (((Date.now() - token.age) < 18000000) && isTokenValid) {
             if (card.currentPoints == (card.previousMaxP)) {
                 await prisma.userCard.update({
                     where: { id: cardId },
                     data: {
                         currentPoints: 0,
                         xCompleted: card.xCompleted + 1,
+                        pendingRedeems: card.pendingRedeems + 1,
                         previousMaxP: companyCardMaxPoints
                     }
                 })
@@ -187,9 +193,27 @@ export async function cardRoutes(app: FastifyInstance) {
                     }
                 })
             }
+            await prisma.tokens.update({ where: { uuid: token.uuid }, data: { used: true } })
         } else {
             return res.status(403).send({ message: 'Token inválido'})
         }
+    })
+
+    app.put('/redeem',async (req, res) => {
+      const { cardId } = z.object({
+        cardId: z.string()
+      }).parse(req.body)
+      const card = await prisma.userCard.findUniqueOrThrow({ where: { id: cardId } })
+
+      try {
+        await prisma.userCard.update({ where: { id: cardId },
+          data: {
+            pendingRedeems: card.pendingRedeems - 1
+          }
+        })
+      } catch (err) {
+        console.log(err)
+      }
     })
 
     app.get('/loyalty/:customerId', async (req, res) => {
