@@ -83,37 +83,24 @@ export async function adRoutes(app: FastifyInstance) {
         })
     })
 
-    app.put('/upgrade/ad', async (req, res) => {
-      const { adId } = z.object({
-        adId: z.string(),
-      }).parse(req.body)
-
-      try {
-        await prisma.ad.update({
+    app.put('/updatePriority/ad', async (req, res) => {
+        const { adId, isPriority } = z.object({
+          adId: z.string(),
+          isPriority: z.boolean(),
+        }).parse(req.body)
+      
+        try {
+          await prisma.ad.update({
             where: { id: adId },
             data: {
-                priority: true
+              isPriority,
             }
-        })
-      } catch (err) {
-          console.log(err)
-      }
-    })
-
-    app.put('/downgrade/ad', async (req, res) => {
-      const { adId } = z.object({
-        adId: z.string(),
-      }).parse(req.body)
-
-      try {
-        await prisma.ad.update({
-            where: { id: adId },
-            data: {
-                priority: false
-            }
-        })
-      } catch (err) {
-          console.log(err)
-      }
-    })
+          })
+      
+          res.status(200).send({ message: 'Prioridade do anúncio atualizada com sucesso.' });
+        } catch (err) {
+          console.log(err);
+          res.status(500).send({ error: 'Erro ao atualizar a prioridade do anúncio.' });
+        }
+      });
 }
