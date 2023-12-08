@@ -39,7 +39,7 @@ export async function companyRoutes(app: FastifyInstance) {
             if (company.isPremium != isPremium) {
                 await prisma.ad.updateMany({ where: { companyId },
                     data: {
-                        priority: isPremium
+                        isPriority: isPremium
                     }
                 })
             }
